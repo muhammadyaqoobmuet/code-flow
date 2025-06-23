@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Suspense, useEffect, useRef, useState } from 'react'
 import { PageContainer } from '../../components/ui/page-container'
 import { SiteHeader } from '../../components/ui/site-header'
 import RoomHeader from './components/Header'
@@ -11,7 +11,8 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ACTIONS } from '@/../actions'
 import FloatingWidget from './components/FloatingWidget'
-
+import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorFallback } from '@/components/ui/ErrorFallback'
 
 
 const Room = () => {
@@ -45,6 +46,7 @@ const Room = () => {
                 return;
             }
 
+
             socketRef.current = await initSocket(ACTIONS.JOIN, {
                 roomId,
                 username
@@ -73,7 +75,6 @@ const Room = () => {
         initRef();
         //clean funtions
         return () => {
-            socketRef.current.disconnect();
             socketRef.current.off(ACTIONS.JOINED);
             socketRef.current.off(ACTIONS.DISCONNECTED);
         }
@@ -89,22 +90,29 @@ const Room = () => {
     return (
 
         <>
-
-
             <RoomHeader />
+            <div className="flex justify-between gap-2 h-screen bg-gray-900 text-sm font-sans relative p-2 ">
 
-            <div className="flex h-screen bg-[#f8fafc] text-sm font-sans relative p-2">
-                <SharedCodeEditor socketRef={socketRef} roomId={roomId} />
-                <CollaborationPanel
-                    socket={socketRef.current}
-                    clients={clients || []}
-                    username={location.state?.username || 'Guest'}
+                <div className='w-full md:w-3/4 lg:w-4/5 xl:w-4/5 2xl:w-4/5 h-full overflow-hidden mx-auto pt-6 rounded-2xl'>
 
-                />
+                    {socketRef.current && <SharedCodeEditor socketRef={socketRef} roomId={roomId} />}
+                </div>
 
+
+                <div className='mx-4 overflow-hidden rounded-xl'>
+                    <ErrorBoundary FallbackComponent={<ErrorFallback />} >
+                        {socketRef.current && <CollaborationPanel
+                            socket={socketRef?.current}
+                            clients={clients || []}
+                            roomId={roomId}
+                            currentUsername={location.state?.username || 'Guest'} />
+                        }
+                    </ErrorBoundary>
+
+                </div>
             </div>
             <div>
-                <FloatingWidget />
+                {/* <FloatingWidget /> */}
             </div>
 
         </>

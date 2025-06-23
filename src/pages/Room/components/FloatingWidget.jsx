@@ -37,7 +37,7 @@ const FloatingWidget = () => {
     return (
         <div
             className={`
-        fixed bottom-6 right-6 z-50
+        fixed bottom-6 right-10 z-50
         transition-all duration-500 ease-in-out transform
         ${isVisible
                     ? 'translate-y-0 opacity-100 scale-100'

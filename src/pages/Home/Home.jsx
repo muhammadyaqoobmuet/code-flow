@@ -19,7 +19,7 @@ export default function Home() {
                 <div className="absolute left-0 top-0 -z-10 h-1/3 w-full bg-gradient-to-b from-primary/10 to-transparent"></div>
 
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 mt-12 font-headline animate-fade-in-up delay-100 ">
-                    Collaborate in <span className="text-[#7db4eaae]">Real-Time</span>.
+                    Collaborate in <span className="bg-[#7db4eaae] px-2 rounded-sm">Real-Time</span>
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 animate-fade-in-up delay-200">
                     Code together, talk together. CodeFlow brings your team closer with a shared code editor and built-in voice chat, no matter where you are.
@@ -37,9 +37,9 @@ export default function Home() {
                     </Button>
                 </div>
 
-                <div className="w-full max-w-4xl p-2 bg-card/50 backdrop-blur-sm border rounded-xl shadow-soft-lg animate-fade-in-up delay-400">
+                <div className="w-full max-w-6xl p-2 bg-card/50 backdrop-blur-sm  rounded-xl shadow-soft-lg animate-fade-in-up delay-400">
                     <img
-                        src="https://placehold.co/1200x600.png"
+                        src="./image.png"
                         alt="CodeFlow collaboration interface mockup"
 
                         className="rounded-lg object-cover"

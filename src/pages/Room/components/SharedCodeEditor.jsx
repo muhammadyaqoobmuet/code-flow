@@ -4,18 +4,24 @@ import LanguageDropdown from './LanguageDrop';
 import TabSwitcher from './TabSwitch';
 import { Editor } from '@monaco-editor/react';
 import { ACTIONS } from '../../../../actions';
+import { Play } from 'lucide-react';
+
 
 function OutputDisplay({ output, isLoading }) {
     return (
-        <div className="mt-4 p-4 bg-black text-green-300 rounded min-h-[100px] font-mono whitespace-pre-wrap">
-            {isLoading ? 'Running your code...' : output}
+        <div className="mt-4 p-4  h-[40vh] overflow-auto bg-black text-green-300 rounded  font-mono whitespace-pre-wrap">
+            <p>
+                {isLoading ? 'Running your code...' : output}
+            </p>
+
         </div>
     );
 }
 
 function SharedCodeEditor({ socketRef, roomId }) {
+    console.log(roomId, socketRef)
     const [language, setLanguage] = useState('javascript');
-    const [activeTab, setActiveTab] = useState('Editor');
+
     const [code, setCode] = useState('');
     const [output, setOutput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +30,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
     // Refs for tracking state
     const isReceivingUpdate = useRef(false);
-    
+
     const editorRef = useRef(null);
     const syncTimeoutRef = useRef(null);
     const hasRequestedSync = useRef(false);
@@ -38,19 +44,26 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
     // Monitor socket connection
     useEffect(() => {
-        if (!socketRef?.current) return;
+        if (!socketRef?.current) {
+            console.log('❌ Socket reference is not available');
+            return
+        }
 
         const socket = socketRef.current;
 
         const checkConnection = () => {
             const connected = socket.connected;
             setSocketConnected(connected);
-            console.log('🔗 Socket connection:', connected, 'Socket ID:', socket.id);
+            if (connected) {
+                console.log('🟢 Socket connected:', socket.id);
+            } else {
+                console.log('🔴 Socket disconnected');
+            }
         };
 
         checkConnection();
 
-        const interval = setInterval(checkConnection, 1000);
+        const interval = setInterval(checkConnection, 10000);
 
         return () => clearInterval(interval);
     }, [socketRef]);
@@ -62,18 +75,17 @@ function SharedCodeEditor({ socketRef, roomId }) {
             return;
         }
 
-        const socket = socketRef.current;
-        console.log('🔧 Setting up socket listeners for room:', roomId);
+        const socket = socketRef?.current;
+
 
         // Handler for receiving code
         const handleReceiveCode = (data) => {
-            console.log('📥 RECEIVED SYNC_CODE EVENT:', data);
-            if (data && typeof data.code === 'string') {
+
+            if (data) {
                 isReceivingUpdate.current = true;
                 setCode(data.code);
                 setSynced(true);
                 hasRequestedSync.current = false; // Reset the flag
-                console.log('✅ Code updated! Length:', data.code.length);
 
                 setTimeout(() => {
                     isReceivingUpdate.current = false;
@@ -85,7 +97,9 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
         // Test listener to see if events are being received
         const handleTestEvent = (data) => {
-            console.log('🧪 TEST EVENT RECEIVED:', data);
+
+            console.log('🔧 Test event received:', data);
+
         };
 
         // Remove existing listeners
@@ -96,19 +110,20 @@ function SharedCodeEditor({ socketRef, roomId }) {
         socket.on(ACTIONS.SYNC_CODE, handleReceiveCode);
         socket.on('test-event', handleTestEvent);
 
-        console.log('📡 Added listeners for:', ACTIONS.SYNC_CODE, 'and test-event');
+
+
 
         // Request initial sync only once
         const requestSync = () => {
             if (socket.connected && !hasRequestedSync.current && !synced) {
-                console.log('🔄 Requesting sync for room:', roomId);
+
                 socket.emit('REQUEST_SYNC', { roomId });
                 hasRequestedSync.current = true;
 
                 // Fallback if no response
                 setTimeout(() => {
                     if (!synced) {
-                        console.log('⚠️ No sync response, marking as synced anyway');
+
                         setSynced(true);
                         hasRequestedSync.current = false;
                     }
@@ -122,7 +137,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
         return () => {
             socket.off(ACTIONS.SYNC_CODE, handleReceiveCode);
             socket.off('test-event', handleTestEvent);
-            console.log('🧹 Cleaned up socket listeners');
+
         };
     }, [socketRef, roomId, synced]); // Include synced to prevent multiple requests
 
@@ -130,7 +145,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
     useEffect(() => {
         hasRequestedSync.current = false;
         setSynced(false);
-        console.log('🔄 Room changed, resetting sync state');
+
     }, [roomId]);
 
     // Debounced emit function
@@ -141,17 +156,13 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
         syncTimeoutRef.current = setTimeout(() => {
             if (socketRef?.current?.connected && !isReceivingUpdate.current && synced) {
-                console.log('📤 Emitting code change to room:', roomId, 'Length:', newCode.length);
+
                 socketRef.current.emit(ACTIONS.SYNC_CODE, {
                     roomId,
                     code: newCode
                 });
             } else {
-                console.log('⚠️ Cannot emit:', {
-                    connected: socketRef?.current?.connected,
-                    receiving: isReceivingUpdate.current,
-                    synced: synced
-                });
+                console.log('❌ Skipping emit (socket not connected or receiving update)');
             }
         }, 150);
     }, [socketRef, roomId, synced]);
@@ -161,11 +172,11 @@ function SharedCodeEditor({ socketRef, roomId }) {
         const newCode = value || '';
 
         if (isReceivingUpdate.current) {
-            console.log('🔄 Skipping emit (receiving from socket)');
+
             return;
         }
 
-        console.log('✏️ User editing, new length:', newCode.length);
+
         setCode(newCode);
 
         if (socketConnected && synced) {
@@ -234,72 +245,19 @@ function SharedCodeEditor({ socketRef, roomId }) {
         editor.focus();
     };
 
-    // Debug function
-    const debugInfo = () => {
-        console.log('=== DEBUG INFO ===');
-        console.log('Socket exists:', !!socketRef?.current);
-        console.log('Socket connected:', socketRef?.current?.connected);
-        console.log('Socket ID:', socketRef?.current?.id);
-        console.log('Room ID:', roomId);
-        console.log('Code length:', code.length);
-        console.log('Socket connected state:', socketConnected);
-        console.log('Synced:', synced);
-        console.log('Has requested sync:', hasRequestedSync.current);
-        console.log('Is receiving update:', isReceivingUpdate.current);
-        console.log('ACTIONS.SYNC_CODE:', ACTIONS.SYNC_CODE);
 
-        // Test if socket can receive events
-        if (socketRef?.current?.connected) {
-            console.log('🧪 Testing socket communication...');
-            socketRef.current.emit('test-ping', { message: 'ping' });
-        }
-        console.log('==================');
-    };
 
-    // Manual sync function
-    const forceSync = () => {
-        if (socketRef?.current && roomId) {
-            console.log('🔄 Force sync requested');
-            hasRequestedSync.current = false;
-            setSynced(false);
 
-            if (socketRef.current.connected) {
-                socketRef.current.emit('REQUEST_SYNC', { roomId });
-                console.log('✅ Sync request sent');
-            } else {
-                console.log('❌ Socket not connected');
-            }
-        } else {
-            console.log('❌ Missing socket or room ID');
-        }
-    };
-
-    // Test socket function
-    const testSocket = () => {
-        if (socketRef?.current) {
-            console.log('🧪 Testing socket...');
-            const socket = socketRef.current;
-
-            // Emit a test event
-            socket.emit('test-ping', { message: 'Hello from client', roomId });
-
-            // Listen for response
-            socket.once('test-pong', (data) => {
-                console.log('✅ Socket test successful:', data);
-            });
-
-            setTimeout(() => {
-                console.log('⚠️ Socket test timeout - no response received');
-            }, 3000);
-        }
-    };
 
     return (
-        <div className="flex-1 p-6 border-r border-gray-200 bg-white">
+        <div className='h-screen '>
             {/* Header */}
-            <div className="mb-4">
+            <div className="my-4 text-white p-6 bg-[#1F2937] flex items-center justify-between rounded-lg">
                 <h2 className="text-lg font-semibold">
                     Shared Code Editor
+
+                </h2>
+                <div>
                     <span className={`ml-2 text-sm ${socketConnected ? 'text-green-600' : 'text-red-600'}`}>
                         {socketConnected ? '🟢 Connected' : '🔴 Disconnected'}
                     </span>
@@ -311,68 +269,62 @@ function SharedCodeEditor({ socketRef, roomId }) {
                             Room: {roomId.slice(0, 8)}...
                         </span>
                     )}
-                </h2>
+                </div>
+
             </div>
 
-            <TabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
+            <div className=" p-6 rounded-xl h-screen overflow-y-auto border-gray-200 bg-[#1F2937] ">
+                {/* Controls */}
+                <div className="flex justify-between items-center gap-2 rounded-xl">
 
-            {/* Controls */}
-            <div className="flex items-center gap-2 my-4">
-                <LanguageDropdown language={language} setLanguage={setLanguage} />
-                <button
-                    onClick={runCode}
-                    disabled={isLoading}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                    {isLoading ? '⏳ Running...' : '💡 Run Code'}
-                </button>
-                <button
-                    onClick={debugInfo}
-                    className="bg-gray-500 text-white px-2 py-1 rounded text-sm"
-                >
-                    Debug
-                </button>
-                <button
-                    onClick={forceSync}
-                    className="bg-purple-500 text-white px-2 py-1 rounded text-sm"
-                >
-                    Force Sync
-                </button>
-                <button
-                    onClick={testSocket}
-                    className="bg-yellow-500 text-white px-2 py-1 rounded text-sm"
-                >
-                    Test Socket
-                </button>
+                    <div className='flex items-center '>
+                        <h1 className='text-white text-xl tracking-wide bg-[#20355bc9] px-4 py-1 rounded-lg '>Editor</h1>
+                    </div>
+                    <div className='flex items-center gap-4'>
+                        <LanguageDropdown language={language} setLanguage={setLanguage} />
+                        <button
+                            onClick={runCode}
+                            disabled={isLoading}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                            {isLoading ? '⏳ Running...' : <p className='flex items-center gap-1'> <Play className='w-3 h-3' /> Run Code</p>}
+                        </button>
+
+                    </div>
+
+
+
+                </div>
+
+                {/* Status */}
+                <div className=" text-black text-lg font-[500] tracking-wide bg-gradient-to-r from-blue-200 to-blue-400 px-6 rounded-sm   mb-2">
+                    Code: {code.length} chars | Socket: {socketConnected ? 'ON' : 'OFF'} | Sync: {synced ? 'YES' : 'NO'}
+                </div>
+
+                {/* Editor */}
+                <div className="w-full h-[calc(100vh-380px)] border rounded-lg overflow-y-auto">
+                    <Editor
+                        height="100%"
+                        language={language.toLowerCase()}
+                        theme="vs-dark"
+                        value={code}
+                        onChange={handleEditorChange}
+                        onMount={handleEditorDidMount}
+                        options={{
+                            fontSize: 14,
+                            minimap: { enabled: false },
+                            scrollBeyondLastLine: false,
+                            wordWrap: 'on',
+                            automaticLayout: true,
+                            selectOnLineNumbers: true,
+                        }}
+                    />
+                </div>
+
+                <OutputDisplay output={output} isLoading={isLoading} />
             </div>
-
-            {/* Status */}
-            <div className="text-sm text-gray-600 mb-2">
-                Code: {code.length} chars | Socket: {socketConnected ? 'ON' : 'OFF'} | Sync: {synced ? 'YES' : 'NO'}
-            </div>
-
-            {/* Editor */}
-            <div className="w-full h-[calc(100vh-380px)] border rounded-lg overflow-hidden">
-                <Editor
-                    height="100%"
-                    language={language.toLowerCase()}
-                    theme="vs-dark"
-                    value={code}
-                    onChange={handleEditorChange}
-                    onMount={handleEditorDidMount}
-                    options={{
-                        fontSize: 14,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        wordWrap: 'on',
-                        automaticLayout: true,
-                        selectOnLineNumbers: true,
-                    }}
-                />
-            </div>
-
-            <OutputDisplay output={output} isLoading={isLoading} />
         </div>
+
     );
 }
 
