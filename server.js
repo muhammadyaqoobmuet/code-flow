@@ -14,6 +14,7 @@ const io = new Server(server, {
 
 const userSocketMap = new Map();
 const roomCodeMap = new Map(); // Store code for each room
+const roomMessagesMap = new Map(); // Store messages for each room
 
 function getAllConnectedUsers(roomId) {
     return Array.from(io.sockets.adapter.rooms.get(roomId) || [])
@@ -29,13 +30,10 @@ io.on('connection', (socket) => {
     console.log('🟢 User connected:', socket.id);
 
     socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
-
         console.log('👤 JOIN EVENT:', { roomId, username, socketId: socket.id });
 
         userSocketMap.set(socket.id, username);
-
-        socket.join(roomId); // become part of the room join 
-
+        socket.join(roomId);
 
         const clients = getAllConnectedUsers(roomId);
         console.log('👥 Room', roomId, 'now has', clients.length, 'users');
@@ -45,13 +43,18 @@ io.on('connection', (socket) => {
         if (existingCode) {
             console.log('📤 SENDING EXISTING CODE to', socket.id, '- Length:', existingCode.length);
             socket.emit(ACTIONS.SYNC_CODE, { code: existingCode });
-        } else {
-            console.log('📝 No existing code in room', roomId);
+        }
+
+        // Send existing messages to the new user
+        const existingMessages = roomMessagesMap.get(roomId) || [];
+        if (existingMessages.length > 0) {
+            console.log('📤 SENDING EXISTING MESSAGES to', socket.id, '- Count:', existingMessages.length);
+            socket.emit('MESSAGES_HISTORY', existingMessages);
         }
 
         // Notify all users about the new join
-        clients.forEach(({ socketId }) => { // socketId is userId Connected In the room
-            io.to(socketId).emit(ACTIONS.JOINED, { // io.to(socketId) emits to a specific user 
+        clients.forEach(({ socketId }) => {
+            io.to(socketId).emit(ACTIONS.JOINED, {
                 clients,
                 username,
                 socketId: socket.id
@@ -59,14 +62,46 @@ io.on('connection', (socket) => {
         });
     });
 
+    // Handle chat messages
+    socket.on('MESSAGE_SEND', ({ roomId, message, username }) => {
+        console.log('💬 MESSAGE_SEND:', { roomId, message, username, from: socket.id });
+
+        if (!roomId || !message || !username) {
+            console.log('❌ Invalid message data');
+            return;
+        }
+
+        const messageData = {
+            id: Date.now() + Math.random(), // Unique ID
+            username,
+            message: message.trim(),
+            timestamp: new Date().toISOString(),
+            socketId: socket.id
+        };
+
+        // Store message in room history
+        if (!roomMessagesMap.has(roomId)) {
+            roomMessagesMap.set(roomId, []);
+        }
+        const roomMessages = roomMessagesMap.get(roomId);
+        roomMessages.push(messageData);
+
+        // Keep only last 100 messages to prevent memory issues
+        if (roomMessages.length > 100) {
+            roomMessages.shift();
+        }
+
+        console.log('📝 Stored message in room', roomId, '- Total messages:', roomMessages.length);
+
+        // Broadcast message to all users in the room
+        io.to(roomId).emit('MESSAGE_RECEIVE', messageData);
+    });
+
     // Handle sync requests
     socket.on('REQUEST_SYNC', ({ roomId }) => {
         console.log('🔄 SYNC REQUEST from', socket.id, 'for room', roomId);
         const existingCode = roomCodeMap.get(roomId);
 
-        console.log('📤 SENDING SYNC CODE - Length:', existingCode?.length || 0);
-
-        // Always send a response, even if empty
         socket.emit(ACTIONS.SYNC_CODE, {
             code: existingCode || '',
             isInitialSync: true
@@ -106,6 +141,7 @@ io.on('connection', (socket) => {
                 const remainingUsers = getAllConnectedUsers(roomId);
                 if (remainingUsers.length <= 1) {
                     roomCodeMap.delete(roomId);
+                    roomMessagesMap.delete(roomId);
                     console.log('🧹 Cleaned up empty room', roomId);
                 }
             }
