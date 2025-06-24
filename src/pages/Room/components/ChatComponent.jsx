@@ -183,7 +183,7 @@ export default function ChatComponent({ socket, roomId, currentUsername }) {
                     <SendIcon className="w-4 h-4 inline-block mr-1" />
                 </button>
             </div>
-            <FloatingWidget />
+            
         </div>
     );
 }

@@ -250,9 +250,9 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
 
     return (
-        <div className='h-screen '>
+        <div className=' '>
             {/* Header */}
-            <div className="my-4 text-white p-6 bg-[#1F2937] flex items-center justify-between rounded-lg">
+            <div className="my-2 text-white p-6 bg-[#1F2937] flex items-center justify-between rounded-lg">
                 <h2 className="text-lg font-semibold">
                     Shared Code Editor
 
@@ -273,19 +273,19 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
             </div>
 
-            <div className=" p-6 rounded-xl h-screen overflow-y-auto border-gray-200 bg-[#1F2937] ">
+            <div className=" p-4 rounded-xl h-screen overflow-y-auto border-gray-200 bg-[#1F2937] ">
                 {/* Controls */}
                 <div className="flex justify-between items-center gap-2 rounded-xl">
 
                     <div className='flex items-center '>
-                        <h1 className='text-white text-xl tracking-wide bg-[#20355bc9] px-4 py-1 rounded-lg '>Editor</h1>
+                        <h1 className='text-white text-xl tracking-wide bg-[#7D84B2] px-4 py-1 rounded-lg '>Editor</h1>
                     </div>
                     <div className='flex items-center gap-4'>
                         <LanguageDropdown language={language} setLanguage={setLanguage} />
                         <button
                             onClick={runCode}
                             disabled={isLoading}
-                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                            className="bg-[#7D84B2] text-white px-4 py-2 rounded hover:[#9D84B2] disabled:opacity-50"
                         >
                             {isLoading ? '⏳ Running...' : <p className='flex items-center gap-1'> <Play className='w-3 h-3' /> Run Code</p>}
                         </button>
@@ -297,12 +297,12 @@ function SharedCodeEditor({ socketRef, roomId }) {
                 </div>
 
                 {/* Status */}
-                <div className=" text-black text-lg font-[500] tracking-wide bg-gradient-to-r from-blue-200 to-blue-400 px-6 rounded-sm   mb-2">
+                <div className=" text-white text-sm font-thin  tracking-wide  px-6 rounded-sm   mb-2">
                     Code: {code.length} chars | Socket: {socketConnected ? 'ON' : 'OFF'} | Sync: {synced ? 'YES' : 'NO'}
                 </div>
 
                 {/* Editor */}
-                <div className="w-full h-[calc(100vh-380px)] border rounded-lg overflow-y-auto">
+                <div className="w-full h-[calc(100vh-180px)] border rounded-lg overflow-y-auto">
                     <Editor
                         height="100%"
                         language={language.toLowerCase()}
