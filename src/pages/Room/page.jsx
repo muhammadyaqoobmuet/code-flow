@@ -91,15 +91,15 @@ const Room = () => {
 
         <>
             <RoomHeader />
-            <div className="flex justify-between gap-2 h-screen bg-gray-900 text-sm font-sans relative p-2 ">
+            <div className="flex flex-col md:flex-row justify-between gap-2 h-screen bg-gray-900 text-sm font-sans relative p-2 ">
 
                 <div className='w-full md:w-3/4 lg:w-4/5 xl:w-4/5 2xl:w-4/5 h-full overflow-hidden mx-auto pt-6 rounded-2xl'>
 
-                    {socketRef.current && <SharedCodeEditor socketRef={socketRef} roomId={roomId} />}
+                    {socketRef.current && <SharedCodeEditor socketRef={socketRef} roomId={roomId} username={username} />}
                 </div>
 
 
-                <div className='mx-4 overflow-hidden rounded-xl'>
+                <div className= ' mt-2 md:mt-1 md:mx-4 overflow-hidden rounded-xl'>
                     <ErrorBoundary FallbackComponent={<ErrorFallback />} >
                         {socketRef.current && <CollaborationPanel
                             socket={socketRef?.current}

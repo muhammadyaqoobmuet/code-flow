@@ -34,6 +34,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
     const editorRef = useRef(null);
     const syncTimeoutRef = useRef(null);
     const hasRequestedSync = useRef(false);
+    
 
     const languageMap = {
         javascript: 63,
@@ -63,7 +64,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
         checkConnection();
 
-        const interval = setInterval(checkConnection, 10000);
+        const interval = setInterval(checkConnection, 400000);
 
         return () => clearInterval(interval);
     }, [socketRef]);
@@ -252,7 +253,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
     return (
         <div className=' '>
             {/* Header */}
-            <div className="my-2 text-white p-6 bg-[#1F2937] flex items-center justify-between rounded-lg">
+            <div className="my-2 text-white p-6 bg-[#1F2937] flex  flex-col sm:flex-row items-center justify-between rounded-lg">
                 <h2 className="text-lg font-semibold">
                     Shared Code Editor
 
@@ -275,7 +276,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
             <div className=" p-4 rounded-xl h-screen overflow-y-auto border-gray-200 bg-[#1F2937] ">
                 {/* Controls */}
-                <div className="flex justify-between items-center gap-2 rounded-xl">
+                <div className="flex justify-between items-center gap-2 rounded-xl ">
 
                     <div className='flex items-center '>
                         <h1 className='text-white text-xl tracking-wide bg-[#7D84B2] px-4 py-1 rounded-lg '>Editor</h1>
@@ -302,7 +303,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
                 </div>
 
                 {/* Editor */}
-                <div className="w-full h-[calc(100vh-180px)] border rounded-lg overflow-y-auto">
+                <div className="w-full h-[200px] md:h-[calc(100vh-180px)] border rounded-lg overflow-y-auto">
                     <Editor
                         height="100%"
                         language={language.toLowerCase()}
