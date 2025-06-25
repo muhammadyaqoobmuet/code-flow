@@ -125,7 +125,11 @@ io.on('connection', (socket) => {
 
         const roomSize = io.sockets.adapter.rooms.get(roomId)?.size || 0;
         console.log('📡 Broadcasted to', roomSize - 1, 'other users');
+
+        
     });
+
+
 
     socket.on('disconnecting', () => {
         const rooms = [...socket.rooms];
