@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/image.png" alt="CodeFlow Logo" width="200" height="200" style="border-radius: 20px;">
+  <img src="./public/image.png" alt="CodeFlow Logo" width="500" height="500" style="border-radius: 20px;">
   
   # 🚀 CodeFlow
   
