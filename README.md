@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/image.png" alt="CodeFlow Logo" width="200" height="200" style="border-radius: 20px;">
+  <img src="https://res.cloudinary.com/dmzpa98np/image/upload/v1751115713/og_xq8vrd.png">
   
   # 🚀 CodeFlow
   
@@ -360,7 +360,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
     <tr>
       <td align="center">
         <img src="https://github.com/muhammadyaqoobmuet.png" width="100px;" alt=""/><br>
-        <sub><b>Your Name</b></sub><br>
+        <sub><b>Muhammad Yaqoob</b></sub><br>
         <a href="https://github.com/muhammadyaqoobmuet">💻</a>
       </td>
       <!-- Add more contributors here -->
