@@ -99,7 +99,7 @@ const Room = () => {
                 </div>
 
 
-                <div className= ' mt-2 md:mt-1 md:mx-4 overflow-hidden rounded-xl'>
+                <div className=' mt-2 md:mt-1 md:mx-4 overflow-hidden rounded-lg md:rounded-xl  '>
                     <ErrorBoundary FallbackComponent={<ErrorFallback />} >
                         {socketRef.current && <CollaborationPanel
                             socket={socketRef?.current}

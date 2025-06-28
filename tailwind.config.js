@@ -1,5 +1,5 @@
 import tailwindAnimate from 'tailwindcss-animate';
-
+import tailwindscrollbar from 'tailwind-scrollbar';
 /** @type {import('tailwindcss').Config} */
 const config = {
     darkMode: ['class'],
@@ -104,7 +104,7 @@ const config = {
             },
         },
     },
-    plugins: [tailwindAnimate],
+    plugins: [tailwindAnimate, tailwindscrollbar],
 };
 
 export default config;
