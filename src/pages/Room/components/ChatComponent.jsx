@@ -117,7 +117,7 @@ export default function ChatComponent({ socket, roomId, currentUsername }) {
         const handleVoiceCallEnd = ({ username }) => {
             console.log('Voice call ended by:', username);
             // toast(`${username} ended the voice call`)
-            
+
             endVoiceCall();
         };
 
@@ -365,24 +365,34 @@ export default function ChatComponent({ socket, roomId, currentUsername }) {
     };
 
     const endVoiceCall = () => {
+        // Clean up streams first
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
         }
 
+        // Clean up peer connection
         if (peerConnectionRef.current) {
             peerConnectionRef.current.close();
             peerConnectionRef.current = null;
         }
 
-        socket.emit('VOICE_CALL_END', {
-            roomId,
-            username: currentUsername
-        });
+        // Clean up remote stream reference
+        if (remoteStreamRef.current) {
+            remoteStreamRef.current = null;
+        }
 
+        // Only emit if we're actually ending a call (not if we're responding to someone else ending)
+        if (isInVoiceCall) {
+            socket.emit('VOICE_CALL_END', {
+                roomId,
+                username: currentUsername
+            });
+        }
+
+        // Reset states
         setIsInVoiceCall(false);
         setIsMicActive(false);
-        streamRef.current = null;
-        remoteStreamRef.current = null;
     };
 
     const toggleMute = () => {
