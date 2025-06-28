@@ -21,6 +21,8 @@ export default [
       'react-refresh': reactRefresh,
     },
     rules: {
+      "no-unsed-vars": "off", // Disable the base rule
+      'react-hooks/rules-of-hooks': 'error', // Checks rules of Hooks
       ...js.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
