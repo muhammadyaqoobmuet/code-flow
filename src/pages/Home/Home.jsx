@@ -188,7 +188,7 @@ export default function Home() {
                 className="relative z-20 p-6"
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.3 }}
             >
                 <nav className="flex justify-between items-center max-w-7xl mx-auto">
                     <motion.div
@@ -224,7 +224,7 @@ export default function Home() {
                         <motion.div
                             initial={{ opacity: 0, y: 50 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
+                            transition={{ duration: 0.4, delay: 0.2 }}
                         >
                             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 mt-12">
                                 Collaborate in <span className="text-white bg-[#8D84B2] px-2 rounded-sm">Real-Time</span>
@@ -234,7 +234,7 @@ export default function Home() {
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.4 }}
+                            transition={{ duration: 0.4, delay: 0.4 }}
                         >
                             <p className={`text-xl md:text-2xl mb-12 max-w-4xl mx-auto leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                                 Code together, talk together. CodeFlow brings your team closer with a shared code editor and built-in voice chat, no matter where you are.
@@ -245,7 +245,7 @@ export default function Home() {
                             className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-20"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.6 }}
+                            transition={{ duration: 0.4, delay: 0.6 }}
                         >
                             <AnimatedButton
                                 className=''
@@ -301,7 +301,7 @@ export default function Home() {
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
+                            transition={{ duration: 0.3 }}
                         >
                             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 Why Choose CodeFlow?
