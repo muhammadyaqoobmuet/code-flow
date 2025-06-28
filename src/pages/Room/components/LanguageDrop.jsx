@@ -1,7 +1,7 @@
 import React from 'react';
 
 function LanguageDropdown({ language, setLanguage }) {
-    const languages = ['JavaScript', 'Python', 'TypeScript', 'C++'];
+    const languages = ['JavaScript', 'Python', 'TypeScript', 'cpp'];
 
     return (
         <div className="flex justify-center items-center py-4">

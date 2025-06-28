@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Users, Edit3, Sparkles, Code, Mic, Github } from 'lucide-react';
+import { ArrowRight, Users, Edit3, Sparkles, Code, Mic, Github, ExternalLink, Heart, Twitter, Linkedin, Instagram, Globe } from 'lucide-react';
 import { motion, useScroll, } from 'framer-motion';
 import { ContainerScroll } from '@/components/ui/container-scroll-animation';
-import { useNavigate } from 'react-router-dom';
-import { Footer } from './Footer';
 
 const GridBackground = ({ isDark = false }) => {
-
-
-
     return (
         <motion.div
             className="absolute inset-0 overflow-hidden pointer-events-none"
-
         >
             <div
                 className={`absolute inset-0 ${isDark ? 'bg-gray-900' : 'bg-white'}`}
@@ -30,8 +24,6 @@ const GridBackground = ({ isDark = false }) => {
         </motion.div>
     );
 };
-
-
 
 const AnimatedButton = ({ children, variant = 'primary', className = '', onClick, ...props }) => {
     const baseClasses = "relative overflow-hidden transition-all duration-200";
@@ -120,11 +112,197 @@ const FeatureCard = ({ feature, index, isDark = false }) => {
     );
 };
 
+const SocialLink = ({ href, icon: Icon, label, isDark }) => {
+    return (
+        <motion.a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`
+                p-3 rounded-xl transition-all duration-300 backdrop-blur-sm
+                ${isDark
+                    ? 'bg-gray-800/50 hover:bg-gray-700/80 text-gray-300 hover:text-white border border-gray-700/50'
+                    : 'bg-white/50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 border border-gray-200/50'
+                }
+                shadow-lg hover:shadow-xl
+            `}
+            whileHover={{
+                scale: 1.1,
+                rotate: 5,
+                boxShadow: isDark
+                    ? "0 10px 30px -5px rgba(0, 0, 0, 0.3)"
+                    : "0 10px 30px -5px rgba(0, 0, 0, 0.15)"
+            }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            aria-label={label}
+        >
+            <Icon className="w-6 h-6" />
+        </motion.a>
+    );
+};
+
+export const Footer = ({ isDark }) => {
+    const currentYear = new Date().getFullYear();
+
+    const socialLinks = [
+        {
+            href: "https://yaqoobhalepoto.engineer", // Replace with actual portfolio URL
+            icon: Globe,
+            label: "Portfolio"
+        },
+        {
+            href: "https://github.com/muhammadyaqoobmuet", // Replace with actual GitHub URL
+            icon: Github,
+            label: "GitHub"
+        },
+        {
+            href: "https://twitter.com/jackub_halepoto", // Replace with actual Twitter URL
+            icon: Twitter,
+            label: "Twitter"
+        },
+        {
+            href: "https://linkedin.com/in/yaqoob-halepoto", // Replace with actual LinkedIn URL
+            icon: Linkedin,
+            label: "LinkedIn"
+        },
+        {
+            href: "https://instagram.com/yaqoob_halepotos", // Replace with actual Instagram URL
+            icon: Instagram,
+            label: "Instagram"
+        }
+    ];
+
+    return (
+        <motion.footer
+            className={`relative mt-20 ${isDark ? 'border-t border-gray-800' : 'border-t border-gray-200'}`}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+        >
+            {/* Background gradient */}
+            <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-t from-gray-900/50 to-transparent' : 'bg-gradient-to-t from-gray-50/50 to-transparent'}`} />
+
+            <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+                    {/* Developer Info */}
+                    <motion.div
+                        className="text-center lg:text-left"
+                        initial={{ opacity: 0, x: -50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                            <motion.div
+                                className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7db4eaae] to-indigo-600 flex items-center justify-center text-white shadow-lg"
+                                whileHover={{ scale: 1.1, rotate: 180 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                            >
+                                <Code className="w-6 h-6" />
+                            </motion.div>
+                            <div>
+                                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    Built by Developer Name
+                                </h3>
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    Full Stack Developer
+                                </p>
+                            </div>
+                        </div>
+                        <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'} leading-relaxed max-w-md mx-auto lg:mx-0`}>
+                            Passionate about creating seamless collaboration tools and bringing developers together through innovative technology.
+                        </p>
+                    </motion.div>
+
+                    {/* Social Links */}
+                    <motion.div
+                        className="flex justify-center"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        <div className="flex gap-4">
+                            {socialLinks.map((link, index) => (
+                                <motion.div
+                                    key={link.label}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                                >
+                                    <SocialLink
+                                        href={link.href}
+                                        icon={link.icon}
+                                        label={link.label}
+                                        isDark={isDark}
+                                    />
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* Copyright & Love */}
+                    <motion.div
+                        className="text-center lg:text-right"
+                        initial={{ opacity: 0, x: 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                    >
+                        <div className="flex items-center justify-center lg:justify-end gap-2 mb-2">
+                            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Made with
+                            </span>
+                            <motion.div
+                                animate={{
+                                    scale: [1, 1.2, 1],
+                                }}
+                                transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                            >
+                                <Heart className="w-4 h-4 text-red-500 fill-current" />
+                            </motion.div>
+                            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                and ☕
+                            </span>
+                        </div>
+                        <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                            © {currentYear} CodeFlow. All rights reserved.
+                        </p>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                            Open source • MIT License
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* Bottom border with gradient */}
+                <motion.div
+                    className="mt-12 pt-8 border-t border-gray-200/20"
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    whileInView={{ opacity: 1, scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                >
+                    <div className="text-center">
+                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                            CodeFlow - Where Ideas Meet Instant Collaboration
+                        </p>
+                    </div>
+                </motion.div>
+            </div>
+        </motion.footer>
+    );
+};
 
 export default function Home() {
     const [isDark, setIsDark] = useState(true);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    const navigate = useNavigate();
 
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -154,11 +332,13 @@ export default function Home() {
     ];
 
     const handleCreateRoom = () => {
-        navigate('/create-room');
+        // Navigate to create room page
+        console.log('Navigate to create room');
     };
 
     const handleJoinRoom = () => {
-        navigate('/join-room');
+        // Navigate to join room page
+        console.log('Navigate to join room');
     };
 
     const handleGithubClick = () => {
@@ -352,6 +532,8 @@ export default function Home() {
                     </motion.section>
                 </div>
             </main>
+
+            {/* Footer */}
             <Footer isDark={isDark} />
         </div>
     );
