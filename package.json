@@ -4,9 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev:front": "vite",
+    "dev": "npm build && npm server:prod ",
     "build": "vite build",
-    "server": "nodemon server.js",
+    "server:dev": "nodemon server.js",
+    "server:prod": "node server.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },

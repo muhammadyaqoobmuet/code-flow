@@ -1,7 +1,9 @@
 import { ACTIONS } from './actions.js';
 import express from 'express';
 import http from 'http';
+import path from 'path';
 import { Server } from 'socket.io';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +15,18 @@ const io = new Server(server, {
     maxHttpBufferSize: 1e8 // 100MB for audio files
 });
 
+
+
+// serving static build
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 const userSocketMap = new Map();
 const roomCodeMap = new Map(); // Store code for each room
 const roomMessagesMap = new Map(); // Store messages for each room
