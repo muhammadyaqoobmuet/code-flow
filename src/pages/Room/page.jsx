@@ -90,7 +90,7 @@ const Room = () => {
     return (
 
         <>
-            <RoomHeader />
+            <RoomHeader roomId={roomId} username={username} />
             <div className="flex flex-col md:flex-row justify-between gap-2 h-screen bg-gray-900 text-sm font-sans relative p-2 ">
 
                 <div className='w-full md:w-3/4 lg:w-4/5 xl:w-4/5 2xl:w-4/5 h-full overflow-hidden mx-auto pt-6 rounded-2xl'>

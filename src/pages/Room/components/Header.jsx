@@ -1,40 +1,73 @@
-import React from 'react'
+import React, { useRef } from 'react'
+
 import { CodeFlowLogo } from '../../../components/ui/code-flow'
 import { Button } from '../../../components/ui/button'
-import { Github } from 'lucide-react'
+import { Code, LogOut } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 
-const RoomHeader = ({ roomDetails = { id: '123', username: "jack" } }) => {
+const RoomHeader = ({ roomId, username }) => {
+
+
+    const textCopy = useRef(null)
+
+    const handleCopy = () => {
+        if (textCopy.current) {
+            navigator.clipboard.writeText(textCopy.current.innerText)
+        }
+        toast.success('Room ID copied to clipboard!')
+    }
     return (
-        <header className="sticky top-0 left-0 right-0 z-50 w-full bg-[#1F2937] text-white shadow-sm">
-            <div className="flex justify-between items-center h-12 px-4 sm:px-6 md:px-16 py-8">
-                {/* Left: Logo */}
-                <CodeFlowLogo />
+        <header
+            className="relative z-20 p-4  bg-[#1F2937] text-white shadow-sm"
 
-                {/* Right: Room Info + Button */}
-                <div className="flex items-center space-x-4">
-                    <div className="text-right leading-tight">
-                        <div className="text-sm font-medium">
-                            Room ID: <span className="font-semibold text-white">{roomDetails.id}</span>
-                        </div>
-                        <div className="text-md text-gray-400">
-                            Username: <span className="font-normal">{roomDetails.username}</span>
-                        </div>
+        >
+            <nav className="flex justify-between items-center max-w-7xl mx-auto">
+                <div
+                    className="flex items-center space-x-2"
+
+                >
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                        <Code className="w-6 h-6 text-white" />
                     </div>
+                    <span className="text-2xl font-bold text-white">
+                        CodeFlow
+                    </span>
+                </div>
+
+                {/* Center: Room Info */}
+                <div
+                    className="text-center leading-tight"
+
+                >
+                    <div onClick={handleCopy} className="text-sm font-medium cursor-copy hover:bg-gray-300/10">
+                        Room ID: <span ref={textCopy} className="font-semibold text-ellipsis max-w-[20px]  text-white">{roomId || "loading id"}</span>
+                    </div>
+                    <div className="text-md text-gray-400">
+                        Created By - <span className="font-normal">{username || "loading username"}</span>
+                    </div>
+
+                </div>
+
+                {/* Right: Leave Button */}
+                <div
+
+                >
+
 
                     <Button
                         variant="secondary"
                         size="sm"
-                        className="text-sm px-3 py-1.5 flex items-center gap-1  bg-gray-700 text-white rounded-md shadow-sm transition-colors"
+                        className="text-sm px-4 py-2 flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-sm transition-all duration-300"
                         asChild
                     >
                         <Link to="/">
-                            <Github className="w-4 h-4" />
-                            Contribute
+                            <LogOut className="w-4 h-4" />
+                            Leave
                         </Link>
                     </Button>
                 </div>
-            </div>
+            </nav>
         </header>
     )
 }

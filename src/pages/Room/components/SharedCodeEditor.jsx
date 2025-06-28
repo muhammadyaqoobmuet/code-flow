@@ -4,7 +4,7 @@ import LanguageDropdown from './LanguageDrop';
 import TabSwitcher from './TabSwitch';
 import { Editor } from '@monaco-editor/react';
 import { ACTIONS } from '../../../../actions';
-import { Play } from 'lucide-react';
+import { Play, Wifi } from 'lucide-react';
 
 
 function OutputDisplay({ output, isLoading }) {
@@ -34,7 +34,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
     const editorRef = useRef(null);
     const syncTimeoutRef = useRef(null);
     const hasRequestedSync = useRef(false);
-    
+
 
     const languageMap = {
         javascript: 63,
@@ -260,7 +260,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
                 </h2>
                 <div>
                     <span className={`ml-2 text-sm ${socketConnected ? 'text-green-600' : 'text-red-600'}`}>
-                        {socketConnected ? '🟢 Connected' : '🔴 Disconnected'}
+                        {socketConnected ? <span className=' '> <Wifi className='inline ' /> <span>connected</span></span> : '🔴 Disconnected'}
                     </span>
                     <span className={`ml-2 text-sm ${synced ? 'text-blue-600' : 'text-orange-600'}`}>
                         {synced ? '🔄 Synced' : '⏳ Syncing...'}
@@ -298,13 +298,14 @@ function SharedCodeEditor({ socketRef, roomId }) {
                 </div>
 
                 {/* Status */}
-                <div className=" text-white text-sm font-thin  tracking-wide  px-6 rounded-sm   mb-2">
-                    Code: {code.length} chars | Socket: {socketConnected ? 'ON' : 'OFF'} | Sync: {synced ? 'YES' : 'NO'}
-                </div>
+              
 
                 {/* Editor */}
                 <div className="w-full h-[200px] md:h-[calc(100vh-180px)] border rounded-lg overflow-y-auto">
-                    <Editor
+                    <div className=" text-white bg-[#1E1E1E] text-sm font-thin  tracking-wide  px-6 rounded-sm border-b border-white   mb-0">
+                        Code: {code.length} chars | Socket: {socketConnected ? 'ON' : 'OFF'} | Sync: {synced ? 'YES' : 'NO'}
+                    </div>
+                    <Editor className='  '
                         height="100%"
                         language={language.toLowerCase()}
                         theme="vs-dark"
