@@ -9,12 +9,14 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: "*",
-    }
+    },
+    maxHttpBufferSize: 1e8 // 100MB for audio files
 });
 
 const userSocketMap = new Map();
 const roomCodeMap = new Map(); // Store code for each room
 const roomMessagesMap = new Map(); // Store messages for each room
+const roomVoiceCallsMap = new Map(); // Store active voice calls
 
 function getAllConnectedUsers(roomId) {
     return Array.from(io.sockets.adapter.rooms.get(roomId) || [])
@@ -62,19 +64,40 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Handle chat messages
-    socket.on('MESSAGE_SEND', ({ roomId, message, username }) => {
-        console.log('💬 MESSAGE_SEND:', { roomId, message, username, from: socket.id });
+    // Handle chat messages (text and audio)
+    socket.on('MESSAGE_SEND', ({ roomId, message, username, messageType, audioData, duration }) => {
+        console.log('💬 MESSAGE_SEND:', {
+            roomId,
+            messageType: messageType || 'text',
+            username,
+            from: socket.id,
+            hasAudio: !!audioData,
+            duration
+        });
 
-        if (!roomId || !message || !username) {
+        if (!roomId || !username) {
             console.log('❌ Invalid message data');
+            return;
+        }
+
+        // Validate message content based on type
+        if (messageType === 'audio' && !audioData) {
+            console.log('❌ Audio message missing audio data');
+            return;
+        }
+
+        if (messageType !== 'audio' && !message) {
+            console.log('❌ Text message missing message content');
             return;
         }
 
         const messageData = {
             id: Date.now() + Math.random(), // Unique ID
             username,
-            message: message.trim(),
+            message: messageType === 'audio' ? '' : message.trim(),
+            messageType: messageType || 'text',
+            audioData: audioData || null,
+            duration: duration || 0,
             timestamp: new Date().toISOString(),
             socketId: socket.id
         };
@@ -95,6 +118,70 @@ io.on('connection', (socket) => {
 
         // Broadcast message to all users in the room
         io.to(roomId).emit('MESSAGE_RECEIVE', messageData);
+    });
+
+    // Voice call handling
+    socket.on('VOICE_CALL_OFFER', ({ roomId, offer, username }) => {
+        console.log('📞 VOICE_CALL_OFFER from', username, 'in room', roomId);
+
+        // Store the active call
+        if (!roomVoiceCallsMap.has(roomId)) {
+            roomVoiceCallsMap.set(roomId, new Set());
+        }
+        roomVoiceCallsMap.get(roomId).add(socket.id);
+
+        // Broadcast offer to all other users in the room
+        socket.in(roomId).emit('VOICE_CALL_OFFER', {
+            from: socket.id,
+            offer,
+            username,
+            roomId
+        });
+    });
+
+    socket.on('VOICE_CALL_ANSWER', ({ roomId, answer, to }) => {
+        console.log('📞 VOICE_CALL_ANSWER in room', roomId);
+
+        // Add this socket to the active call
+        if (!roomVoiceCallsMap.has(roomId)) {
+            roomVoiceCallsMap.set(roomId, new Set());
+        }
+        roomVoiceCallsMap.get(roomId).add(socket.id);
+
+        // Send answer to the specific user who made the offer
+        if (to) {
+            io.to(to).emit('VOICE_CALL_ANSWER', { answer, from: socket.id });
+        }
+    });
+
+    socket.on('VOICE_CALL_ICE_CANDIDATE', ({ roomId, candidate }) => {
+        console.log('📞 ICE_CANDIDATE in room', roomId);
+
+        // Broadcast ICE candidate to all other users in the room
+        socket.in(roomId).emit('VOICE_CALL_ICE_CANDIDATE', {
+            candidate,
+            from: socket.id
+        });
+    });
+
+    socket.on('VOICE_CALL_END', ({ roomId, username }) => {
+        console.log('📞 VOICE_CALL_END from', username, 'in room', roomId);
+
+        // Remove from active calls
+        if (roomVoiceCallsMap.has(roomId)) {
+            roomVoiceCallsMap.get(roomId).delete(socket.id);
+
+            // If no more active calls, clean up
+            if (roomVoiceCallsMap.get(roomId).size === 0) {
+                roomVoiceCallsMap.delete(roomId);
+            }
+        }
+
+        // Notify all other users in the room
+        socket.in(roomId).emit('VOICE_CALL_END', {
+            username,
+            from: socket.id
+        });
     });
 
     // Handle sync requests
@@ -125,17 +212,28 @@ io.on('connection', (socket) => {
 
         const roomSize = io.sockets.adapter.rooms.get(roomId)?.size || 0;
         console.log('📡 Broadcasted to', roomSize - 1, 'other users');
-
-        
     });
-
-
 
     socket.on('disconnecting', () => {
         const rooms = [...socket.rooms];
 
         rooms.forEach((roomId) => {
             if (roomId !== socket.id) {
+                // End any active voice calls
+                if (roomVoiceCallsMap.has(roomId)) {
+                    roomVoiceCallsMap.get(roomId).delete(socket.id);
+
+                    // Notify others about voice call end
+                    socket.in(roomId).emit('VOICE_CALL_END', {
+                        username: userSocketMap.get(socket.id),
+                        from: socket.id
+                    });
+
+                    if (roomVoiceCallsMap.get(roomId).size === 0) {
+                        roomVoiceCallsMap.delete(roomId);
+                    }
+                }
+
                 socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
                     socketId: socket.id,
                     username: userSocketMap.get(socket.id)
@@ -146,6 +244,7 @@ io.on('connection', (socket) => {
                 if (remainingUsers.length <= 1) {
                     roomCodeMap.delete(roomId);
                     roomMessagesMap.delete(roomId);
+                    roomVoiceCallsMap.delete(roomId);
                     console.log('🧹 Cleaned up empty room', roomId);
                 }
             }
