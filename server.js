@@ -19,14 +19,14 @@ const io = new Server(server, {
 
 // serving static build
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// app.use((req, res) => {
-//     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-// });
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 
 const userSocketMap = new Map();
 const roomCodeMap = new Map(); // Store code for each room
