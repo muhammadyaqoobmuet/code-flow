@@ -19,14 +19,15 @@ const io = new Server(server, {
 
 // serving static build
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
-app.use(express.static(path.join(__dirname, 'dist')));
+// app.use(express.static(path.join(__dirname, 'dist')));
 
-app.use((req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+// app.use((req, res) => {
+//     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// });
+
 const userSocketMap = new Map();
 const roomCodeMap = new Map(); // Store code for each room
 const roomMessagesMap = new Map(); // Store messages for each room
@@ -43,28 +44,28 @@ function getAllConnectedUsers(roomId) {
 }
 
 io.on('connection', (socket) => {
-    console.log('🟢 User connected:', socket.id);
+
 
     socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
-        console.log('👤 JOIN EVENT:', { roomId, username, socketId: socket.id });
+
 
         userSocketMap.set(socket.id, username);
         socket.join(roomId);
 
         const clients = getAllConnectedUsers(roomId);
-        console.log('👥 Room', roomId, 'now has', clients.length, 'users');
+
 
         // Send existing code to the new user
         const existingCode = roomCodeMap.get(roomId);
         if (existingCode) {
-            console.log('📤 SENDING EXISTING CODE to', socket.id, '- Length:', existingCode.length);
+
             socket.emit(ACTIONS.SYNC_CODE, { code: existingCode });
         }
 
         // Send existing messages to the new user
         const existingMessages = roomMessagesMap.get(roomId) || [];
         if (existingMessages.length > 0) {
-            console.log('📤 SENDING EXISTING MESSAGES to', socket.id, '- Count:', existingMessages.length);
+
             socket.emit('MESSAGES_HISTORY', existingMessages);
         }
 
@@ -80,28 +81,21 @@ io.on('connection', (socket) => {
 
     // Handle chat messages (text and audio)
     socket.on('MESSAGE_SEND', ({ roomId, message, username, messageType, audioData, duration }) => {
-        console.log('💬 MESSAGE_SEND:', {
-            roomId,
-            messageType: messageType || 'text',
-            username,
-            from: socket.id,
-            hasAudio: !!audioData,
-            duration
-        });
+
 
         if (!roomId || !username) {
-            console.log('❌ Invalid message data');
+
             return;
         }
 
         // Validate message content based on type
         if (messageType === 'audio' && !audioData) {
-            console.log('❌ Audio message missing audio data');
+
             return;
         }
 
         if (messageType !== 'audio' && !message) {
-            console.log('❌ Text message missing message content');
+
             return;
         }
 
@@ -128,7 +122,7 @@ io.on('connection', (socket) => {
             roomMessages.shift();
         }
 
-        console.log('📝 Stored message in room', roomId, '- Total messages:', roomMessages.length);
+
 
         // Broadcast message to all users in the room
         io.to(roomId).emit('MESSAGE_RECEIVE', messageData);
@@ -136,7 +130,7 @@ io.on('connection', (socket) => {
 
     // Voice call handling
     socket.on('VOICE_CALL_OFFER', ({ roomId, offer, username }) => {
-        console.log('📞 VOICE_CALL_OFFER from', username, 'in room', roomId);
+
 
         // Store the active call
         if (!roomVoiceCallsMap.has(roomId)) {
@@ -154,7 +148,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('VOICE_CALL_ANSWER', ({ roomId, answer, to }) => {
-        console.log('📞 VOICE_CALL_ANSWER in room', roomId);
+
 
         // Add this socket to the active call
         if (!roomVoiceCallsMap.has(roomId)) {
@@ -169,7 +163,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('VOICE_CALL_ICE_CANDIDATE', ({ roomId, candidate }) => {
-        console.log('📞 ICE_CANDIDATE in room', roomId);
+
 
         // Broadcast ICE candidate to all other users in the room
         socket.in(roomId).emit('VOICE_CALL_ICE_CANDIDATE', {
@@ -200,7 +194,7 @@ io.on('connection', (socket) => {
 
     // Handle sync requests
     socket.on('REQUEST_SYNC', ({ roomId }) => {
-        console.log('🔄 SYNC REQUEST from', socket.id, 'for room', roomId);
+        ;
         const existingCode = roomCodeMap.get(roomId);
 
         socket.emit(ACTIONS.SYNC_CODE, {
@@ -212,11 +206,11 @@ io.on('connection', (socket) => {
     // Handle code changes
     socket.on(ACTIONS.SYNC_CODE, ({ roomId, code }) => {
         if (!roomId || typeof code !== 'string') {
-            console.log('❌ Invalid sync data');
+
             return;
         }
 
-        console.log('📝 CODE CHANGE in room', roomId, 'from', socket.id, '- Length:', code.length);
+
 
         // Store the code
         roomCodeMap.set(roomId, code);
@@ -259,13 +253,13 @@ io.on('connection', (socket) => {
                     roomCodeMap.delete(roomId);
                     roomMessagesMap.delete(roomId);
                     roomVoiceCallsMap.delete(roomId);
-                    console.log('🧹 Cleaned up empty room', roomId);
+
                 }
             }
         });
 
         userSocketMap.delete(socket.id);
-        console.log('🔴 User disconnected:', socket.id);
+
     });
 });
 

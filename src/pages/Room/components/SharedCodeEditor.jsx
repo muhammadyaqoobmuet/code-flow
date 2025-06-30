@@ -4,37 +4,57 @@ import LanguageDropdown from './LanguageDrop';
 import TabSwitcher from './TabSwitch';
 import { Editor } from '@monaco-editor/react';
 import { ACTIONS } from '../../../../actions';
-import { Play, Wifi } from 'lucide-react';
-
+import { Play, Wifi, WifiOff, RotateCcw, Code2, Activity, Terminal, Monitor } from 'lucide-react';
 
 function OutputDisplay({ output, isLoading }) {
     return (
-        <div className="mt-4 p-4  h-[40vh] overflow-auto bg-black text-green-300 rounded  font-mono whitespace-pre-wrap">
-            <p>
-                {isLoading ? 'Running your code...' : output}
-            </p>
-
+        <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-900/50 to-black/50 border-b border-green-300/10 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse shadow-lg shadow-green-400/50"></div>
+                    <span className="text-sm font-semibold text-green-400 tracking-wide">Console Output</span>
+                </div>
+                {isLoading && (
+                    <div className="flex items-center gap-3 text-green-400">
+                        <RotateCcw className="w-4 h-4 animate-spin" />
+                        <span className="text-sm font-medium">Executing</span>
+                    </div>
+                )}
+            </div>
+            <div className="flex-1 p-6 overflow-auto bg-gradient-to-br from-gray-900 to-black text-green-300 font-mono text-sm leading-7 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-green-600/50 scrollbar-track-transparent">
+                {isLoading ? (
+                    <div className="flex items-center gap-4 text-green-400">
+                        <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                        <span>Running your code...</span>
+                    </div>
+                ) : (
+                    output || <span className="text-green-400/60 italic">Ready to execute code...</span>
+                )}
+            </div>
         </div>
     );
 }
 
 function SharedCodeEditor({ socketRef, roomId }) {
-    console.log(roomId, socketRef)
     const [language, setLanguage] = useState('javascript');
-
     const [code, setCode] = useState('');
     const [output, setOutput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [socketConnected, setSocketConnected] = useState(false);
     const [synced, setSynced] = useState(false);
 
+    // Mobile-specific states
+    const [activeTab, setActiveTab] = useState('editor');
+
     // Refs for tracking state
     const isReceivingUpdate = useRef(false);
-
     const editorRef = useRef(null);
     const syncTimeoutRef = useRef(null);
     const hasRequestedSync = useRef(false);
-
 
     const languageMap = {
         javascript: 63,
@@ -46,8 +66,7 @@ function SharedCodeEditor({ socketRef, roomId }) {
     // Monitor socket connection
     useEffect(() => {
         if (!socketRef?.current) {
-            console.log('❌ Socket reference is not available');
-            return
+            return;
         }
 
         const socket = socketRef.current;
@@ -55,76 +74,44 @@ function SharedCodeEditor({ socketRef, roomId }) {
         const checkConnection = () => {
             const connected = socket.connected;
             setSocketConnected(connected);
-            if (connected) {
-                console.log('🟢 Socket connected:', socket.id);
-            } else {
-                console.log('🔴 Socket disconnected');
-            }
         };
 
         checkConnection();
-
         const interval = setInterval(checkConnection, 400000);
-
         return () => clearInterval(interval);
     }, [socketRef]);
 
     // Socket event listeners
     useEffect(() => {
         if (!socketRef?.current || !roomId) {
-            console.log('❌ Missing socket or roomId');
             return;
         }
 
         const socket = socketRef?.current;
 
-
-        // Handler for receiving code
         const handleReceiveCode = (data) => {
-
             if (data) {
                 isReceivingUpdate.current = true;
                 setCode(data.code);
                 setSynced(true);
-                hasRequestedSync.current = false; // Reset the flag
+                hasRequestedSync.current = false;
 
                 setTimeout(() => {
                     isReceivingUpdate.current = false;
                 }, 100);
-            } else {
-                console.log('❌ Invalid sync data received:', data);
             }
         };
 
-        // Test listener to see if events are being received
-        const handleTestEvent = (data) => {
-
-            console.log('🔧 Test event received:', data);
-
-        };
-
-        // Remove existing listeners
         socket.off(ACTIONS.SYNC_CODE);
-        socket.off('test-event');
-
-        // Add listeners
         socket.on(ACTIONS.SYNC_CODE, handleReceiveCode);
-        socket.on('test-event', handleTestEvent);
 
-
-
-
-        // Request initial sync only once
         const requestSync = () => {
             if (socket.connected && !hasRequestedSync.current && !synced) {
-
                 socket.emit('REQUEST_SYNC', { roomId });
                 hasRequestedSync.current = true;
 
-                // Fallback if no response
                 setTimeout(() => {
                     if (!synced) {
-
                         setSynced(true);
                         hasRequestedSync.current = false;
                     }
@@ -132,24 +119,18 @@ function SharedCodeEditor({ socketRef, roomId }) {
             }
         };
 
-        // Initial sync request
         requestSync();
 
         return () => {
             socket.off(ACTIONS.SYNC_CODE, handleReceiveCode);
-            socket.off('test-event', handleTestEvent);
-
         };
-    }, [socketRef, roomId, synced]); // Include synced to prevent multiple requests
+    }, [socketRef, roomId, synced]);
 
-    // Reset when room changes
     useEffect(() => {
         hasRequestedSync.current = false;
         setSynced(false);
-
     }, [roomId]);
 
-    // Debounced emit function
     const emitCodeChange = useCallback((newCode) => {
         if (syncTimeoutRef.current) {
             clearTimeout(syncTimeoutRef.current);
@@ -157,26 +138,20 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
         syncTimeoutRef.current = setTimeout(() => {
             if (socketRef?.current?.connected && !isReceivingUpdate.current && synced) {
-
                 socketRef.current.emit(ACTIONS.SYNC_CODE, {
                     roomId,
                     code: newCode
                 });
-            } else {
-                console.log('❌ Skipping emit (socket not connected or receiving update)');
             }
         }, 150);
     }, [socketRef, roomId, synced]);
 
-    // Handle editor changes
     const handleEditorChange = useCallback((value) => {
         const newCode = value || '';
 
         if (isReceivingUpdate.current) {
-
             return;
         }
-
 
         setCode(newCode);
 
@@ -185,7 +160,6 @@ function SharedCodeEditor({ socketRef, roomId }) {
         }
     }, [emitCodeChange, socketConnected, synced]);
 
-    // Code execution
     const captureConsoleLogs = (codeStr) => {
         const logs = [];
         const originalLog = console.log;
@@ -204,6 +178,11 @@ function SharedCodeEditor({ socketRef, roomId }) {
     const runCode = async () => {
         setIsLoading(true);
         setOutput('');
+
+        // On mobile, switch to output tab when running code
+        if (window.innerWidth < 1024) {
+            setActiveTab('output');
+        }
 
         const lang = language.toLowerCase();
 
@@ -242,92 +221,273 @@ function SharedCodeEditor({ socketRef, roomId }) {
 
     const handleEditorDidMount = (editor) => {
         editorRef.current = editor;
-        console.log('📝 Editor mounted');
         editor.focus();
     };
 
-
-
-
-
     return (
-        <div className=' '>
-            {/* Header */}
-            <div className="my-2 text-white p-6 bg-[#1F2937] flex  flex-col sm:flex-row items-center justify-between rounded-lg">
-                <h2 className="text-lg font-semibold">
-                    Shared Code Editor
+        <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+            {/* Clean Header */}
+            <header className="flex-shrink-0 bg-white/5 backdrop-blur-xl border-b border-white/10">
+                <div className="px-6 py-6 lg:px-8">
+                    {/* Mobile Header */}
+                    <div className="lg:hidden">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-gradient-to-r from-[#8D84B2] to-purple-600/50 rounded-xl shadow-lg">
+                                    <Code2 className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold text-white">CodeFlow</h1>
+                                    <p className="text-sm text-gray-400 mt-1">Collaborative Editor</p>
+                                </div>
+                            </div>
+                        </div>
 
-                </h2>
-                <div>
-                    <span className={`ml-2 text-sm ${socketConnected ? 'text-green-600' : 'text-red-600'}`}>
-                        {socketConnected ? <span className=' '> <Wifi className='inline ' /> <span>connected</span></span> : '🔴 Disconnected'}
-                    </span>
-                    <span className={`ml-2 text-sm ${synced ? 'text-blue-600' : 'text-orange-600'}`}>
-                        {synced ? '🔄 Synced' : '⏳ Syncing...'}
-                    </span>
-                    {roomId && (
-                        <span className="ml-2 text-xs text-gray-500">
-                            Room: {roomId.slice(0, 8)}...
-                        </span>
+                        {/* Status Indicators */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-4">
+                                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${socketConnected
+                                        ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                    }`}>
+                                    {socketConnected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+                                    <span>{socketConnected ? 'Connected' : 'Offline'}</span>
+                                </div>
+
+                                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${synced
+                                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                    }`}>
+                                    <Activity className="w-4 h-4" />
+                                    <span>{synced ? 'Synced' : 'Syncing'}</span>
+                                </div>
+                            </div>
+
+                            {roomId && (
+                                <div className="px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg">
+                                    <span className="text-xs text-gray-400 font-mono">Room: {roomId.slice(0, 6)}...</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Mobile Tabs */}
+                        <div className="flex bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 border border-gray-700/50">
+                            <button
+                                onClick={() => setActiveTab('editor')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === 'editor'
+                                    ? 'bg-gradient-to-r bg-gradient-to-r from-[#8D84B2] to-purple-600/50 text-white shadow-lg'
+                                        : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                <Monitor className="w-4 h-4" />
+                                <span>Editor</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('output')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === 'output'
+                                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg'
+                                        : 'text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                <Terminal className="w-4 h-4" />
+                                <span>Console</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Desktop Header */}
+                    <div className="hidden lg:flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-4 bg-gradient-to-r from-[#8D84B2] to-purple-600/50 rounded-2xl shadow-lg">
+                                    <Code2 className="w-7 h-7 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl  font-bold text-white tracking-tight">CodeFlow</h1>
+                                    <p className="text-gray-400 mt-1">Real-time collaborative coding environment</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold ${socketConnected
+                                        ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                    }`}>
+                                    {socketConnected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+                                    <span>{socketConnected ? 'Connected' : 'Disconnected'}</span>
+                                </div>
+
+                                <div className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-semibold ${synced
+                                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                    }`}>
+                                    <Activity className="w-4 h-4" />
+                                    <span>{synced ? 'Synced' : 'Syncing...'}</span>
+                                </div>
+                            </div>
+
+                            {roomId && (
+                                <div className="px-4 py-2 bg-gray-800/30 border border-gray-700/30 rounded-xl backdrop-blur-sm">
+                                    <span className="text-sm text-gray-300 font-mono">Room: {roomId.slice(0, 10)}...</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content */}
+            <main className="flex-1 overflow-hidden">
+                {/* Mobile Layout */}
+                <div className="lg:hidden h-full">
+                    {activeTab === 'editor' && (
+                        <div className="h-full flex flex-col">
+                            {/* Mobile Editor Controls */}
+                            <div className="flex-shrink-0 flex items-center justify-between gap-4 px-6 py-4 bg-gray-800/30 backdrop-blur-sm border-b border-gray-700/30">
+                                <LanguageDropdown language={language} setLanguage={setLanguage} />
+                                <button
+                                    onClick={runCode}
+                                    disabled={isLoading}
+                                    className="flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <RotateCcw className="w-4 h-4 animate-spin" />
+                                            <span>Running</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="w-4 h-4" />
+                                            <span>Run Code</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Mobile Editor */}
+                            <div className="flex-1 overflow-hidden">
+                                <Editor
+                                    height="100%"
+                                    language={language.toLowerCase()}
+                                    theme="vs-dark"
+                                    value={code}
+                                    onChange={handleEditorChange}
+                                    onMount={handleEditorDidMount}
+                                    options={{
+                                        fontSize: 14,
+                                        fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace",
+                                        minimap: { enabled: false },
+                                        scrollBeyondLastLine: false,
+                                        wordWrap: 'on',
+                                        automaticLayout: true,
+                                        lineNumbers: 'on',
+                                        bracketPairColorization: { enabled: true },
+                                        tabSize: 2,
+                                        insertSpaces: true,
+                                        padding: { top: 20, bottom: 20 },
+                                        scrollbar: {
+                                            verticalScrollbarSize: 8,
+                                            horizontalScrollbarSize: 8
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'output' && (
+                        <div className="h-full">
+                            <OutputDisplay output={output} isLoading={isLoading} />
+                        </div>
                     )}
                 </div>
 
-            </div>
+                {/* Desktop Layout */}
+                <div className="hidden lg:flex gap-6 p-6 h-full">
+                    {/* Desktop Editor */}
+                    <div className="flex-1 flex flex-col bg-gray-800/20 backdrop-blur-xl rounded-2xl border border-gray-700/30 overflow-hidden shadow-2xl">
+                        {/* Desktop Editor Controls */}
+                        <div className="flex-shrink-0 flex items-center justify-between gap-4 px-8 py-6 bg-gray-800/30 backdrop-blur-sm border-b border-gray-700/30">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 bg-gradient-to-r from-[#8D84B2] to-purple-600/50 px-4 py-2 rounded-xl font-bold text-white shadow-lg">
+                                    <Monitor className="w-5 h-5" />
+                                    <span>Code Editor</span>
+                                </div>
+                            </div>  
 
-            <div className=" p-4 rounded-xl h-screen overflow-y-auto border-gray-200 bg-[#1F2937] ">
-                {/* Controls */}
-                <div className="flex justify-between items-center gap-2 rounded-xl ">
+                            <div className="flex items-center gap-4">
+                                <LanguageDropdown language={language} setLanguage={setLanguage} />
+                                <button
+                                    onClick={runCode}
+                                    disabled={isLoading}
+                                    className="flex items-center gap-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <RotateCcw className="w-5 h-5 animate-spin" />
+                                            <span>Running...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="w-5 h-5" />
+                                            <span>Run Code</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
 
-                    <div className='flex items-center '>
-                        <h1 className='text-white text-xl tracking-wide bg-[#7D84B2] px-4 py-1 rounded-lg '>Editor</h1>
+                        {/* Desktop Editor */}
+                        <div className="flex-1 overflow-hidden">
+                            <Editor
+                                height="100%"
+                                language={language.toLowerCase()}
+                                theme="vs-dark"
+                                value={code}
+                                onChange={handleEditorChange}
+                                onMount={handleEditorDidMount}
+                                options={{
+                                    fontSize: 15,
+                                    fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace",
+                                    minimap: { enabled: window.innerWidth > 1400 },
+                                    scrollBeyondLastLine: false,
+                                    wordWrap: 'on',
+                                    automaticLayout: true,
+                                    lineNumbers: 'on',
+                                    bracketPairColorization: { enabled: true },
+                                    tabSize: 2,
+                                    insertSpaces: true,
+                                    padding: { top: 24, bottom: 24 },
+                                    lineHeight: 1.6,
+                                }}
+                            />
+                        </div>
                     </div>
-                    <div className='flex items-center gap-4'>
-                        <LanguageDropdown language={language} setLanguage={setLanguage} />
-                        <button
-                            onClick={runCode}
-                            disabled={isLoading}
-                            className="bg-[#7D84B2] text-white px-4 py-2 rounded hover:[#9D84B2] disabled:opacity-50"
-                        >
-                            {isLoading ? '⏳ Running...' : <p className='flex items-center gap-1'> <Play className='w-3 h-3' /> Run Code</p>}
-                        </button>
 
+                    {/* Desktop Output */}
+                    <div className="w-96 flex flex-col bg-gray-800/20 backdrop-blur-xl rounded-2xl border border-gray-700/30 overflow-hidden shadow-2xl">
+                        <div className="flex-shrink-0 flex items-center justify-between gap-4 px-8 py-6 bg-gray-800/30 backdrop-blur-sm border-b border-gray-700/30">
+                            <div className="flex items-center gap-3 bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 rounded-xl font-bold text-white shadow-lg">
+                                <Terminal className="w-5 h-5" />
+                                <span>Console</span>
+                            </div>
+                            <button
+                                onClick={() => setOutput('')}
+                                className="text-gray-400 hover:text-white px-3 py-1 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors text-sm"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <OutputDisplay output={output} isLoading={isLoading} />
+                        </div>
                     </div>
-
-
-
                 </div>
-
-                {/* Status */}
-              
-
-                {/* Editor */}
-                <div className="w-full h-[200px] md:h-[calc(100vh-180px)] border rounded-lg overflow-y-auto">
-                    <div className=" text-white bg-[#1E1E1E] text-sm font-thin  tracking-wide  px-6 rounded-sm border-b border-white   mb-0">
-                        Code: {code.length} chars | Socket: {socketConnected ? 'ON' : 'OFF'} | Sync: {synced ? 'YES' : 'NO'}
-                    </div>
-                    <Editor className='  '
-                        height="100%"
-                        language={language.toLowerCase()}
-                        theme="vs-dark"
-                        value={code}
-                        onChange={handleEditorChange}
-                        onMount={handleEditorDidMount}
-                        options={{
-                            fontSize: 14,
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            wordWrap: 'on',
-                            automaticLayout: true,
-                            selectOnLineNumbers: true,
-                        }}
-                    />
-                </div>
-
-                <OutputDisplay output={output} isLoading={isLoading} />
-            </div>
+            </main>
         </div>
-
     );
 }
 
-export default SharedCodeEditor;
+export default SharedCodeEditor;    

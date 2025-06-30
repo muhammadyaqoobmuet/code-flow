@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/button'
 import SharedCodeEditor from './components/SharedCodeEditor'
 import CollaborationPanel from './components/CollabPanel'
 import { initSocket } from '@/socket'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { toast } from 'sonner'
 import { ACTIONS } from '@/../actions'
@@ -23,7 +23,7 @@ const Room = () => {
 
     const [roomId] = location.pathname.split('/').slice(-1); // Extracting room ID from the URL
     const username = location.state?.username
-    console.log(roomId, username); // This will log the room ID from the URL
+
 
     const socketRef = useRef(null);
 
@@ -42,8 +42,13 @@ const Room = () => {
             // });
             //   EMITING EVENT FOR JOINING ROOM
             if (!username) {
-                toast.error('Please enter a username before joining the room.');
+                alert("enter roomId on join page")
+
+                window.location.href = '/join-room'
+
+
                 return;
+
             }
 
 

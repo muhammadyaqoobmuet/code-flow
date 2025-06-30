@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 
 import { User, KeyRound, ArrowRight, Code, ArrowLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
-
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 // Mock room existence check
 const MOCK_EXISTING_ROOM_IDS = ["project-phoenix-meeting-abc123", "study-group-xyz789"];
 
@@ -98,9 +98,10 @@ const AnimatedInput = ({ label, placeholder, error, register, name, isDark, ...p
 
 export default function JoinRoom() {
     const [isDark, setIsDark] = useState(true);
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [toast, setToast] = useState(null);
+
+    const router = useNavigate()
 
     const {
         register,
@@ -113,12 +114,7 @@ export default function JoinRoom() {
         },
     });
 
-   
 
-    const showToast = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 3000);
-    };
 
     const handleGoBack = () => {
         window.history.back();
@@ -127,37 +123,41 @@ export default function JoinRoom() {
     async function onSubmit(values) {
         setIsSubmitting(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+
+
 
         // Validate inputs
         if (!values.username || values.username.length < 2) {
-            showToast("Invalid Username", 'error');
+            toast("Invalid Username", 'error');
             setIsSubmitting(false);
             return;
         }
 
         if (!values.roomId || values.roomId.length < 3) {
-            showToast(`The room with ID "${values.roomId}" does not exist. Please check the ID and try again.`, 'error');
+            toast(`The room with ID "${values.roomId}" does not exist. Please check the ID and try again.`, 'error');
             setIsSubmitting(false);
             return;
         }
 
         // Mock room existence check
         if (!MOCK_EXISTING_ROOM_IDS.includes(values.roomId) && !values.roomId.includes('-')) {
-            showToast(`Attempting to join room "${values.roomId}".`, 'success');
+            toast(`Attempting to join room "${values.roomId}".`, 'success');
             setIsSubmitting(false);
             return;
         }
 
-        showToast("Joining Room...", 'success');
 
+
+
+
+        router(`/editor/${values?.roomId}`, {
+            state: {
+                username: values.username
+            }
+        })
         // Store username in memory (since localStorage isn't available)
         // In a real app, you'd navigate to the editor here
-        setTimeout(() => {
-            showToast(`Successfully joined room "${values.roomId}" as ${values.username}!`, 'success');
-            setIsSubmitting(false);
-        }, 1500);
+
     }
 
     return (
@@ -175,18 +175,7 @@ export default function JoinRoom() {
 
             />
 
-            {/* Toast Notification */}
-            {toast && (
-                <div
-                    className={`fixed top-6 right-6 z-50 px-6 py-4 rounded-xl shadow-lg ${toast.type === 'error'
-                        ? 'bg-red-500 text-white'
-                        : 'bg-green-500 text-white'
-                        }`}
 
-                >
-                    {toast.message}
-                </div>
-            )}
 
             {/* Header */}
             <header
@@ -227,7 +216,7 @@ export default function JoinRoom() {
             </header>
 
             {/* Main Content */}
-            <main className="relative z-10 px-6 flex items-center justify-center min-h-[calc(100vh-120px) ]">
+            <main className="relative z-10 px-6 flex items-center justify-center min-h-[calc(100vh-120px)]">
                 <div className="w-full max-w-md">
                     {/* Form Card */}
                     <div
@@ -250,7 +239,7 @@ export default function JoinRoom() {
 
                             >
                                 <div
-                                    className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7db4eaae] to-indigo-600 flex items-center justify-center text-white shadow-lg mx-auto mb-4"
+                                    className="w-16 h-16 rounded-full bg-[#9D8BE6]  flex items-center justify-center text-white shadow-lg mx-auto mb-4"
                                     whileHover={{ scale: 1.1, rotate: 5 }}
                                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                                 >
@@ -282,6 +271,8 @@ export default function JoinRoom() {
                                     label="Room ID"
                                     placeholder="Enter Room ID"
                                     icon={KeyRound}
+
+
                                     error={errors.roomId}
                                     register={register}
                                     name="roomId"

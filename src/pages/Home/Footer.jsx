@@ -204,7 +204,7 @@ export const Footer = ({ isDark }) => {
                             </motion.div>
                             <div>
                                 <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                    Built by Developer Name
+                                    Built by Muhammad Yaqoob
                                 </h3>
                                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                                     Full Stack Developer
@@ -281,20 +281,8 @@ export const Footer = ({ isDark }) => {
                     </motion.div>
                 </div>
 
-                {/* Bottom border with gradient */}
-                <motion.div
-                    className="mt-12 pt-8 border-t border-gray-200/20"
-                    initial={{ opacity: 0, scaleX: 0 }}
-                    whileInView={{ opacity: 1, scaleX: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                >
-                    <div className="text-center">
-                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                            CodeFlow - Where Ideas Meet Instant Collaboration
-                        </p>
-                    </div>
-                </motion.div>
+
+
             </div>
         </motion.footer>
     );
@@ -333,12 +321,12 @@ export default function Home() {
 
     const handleCreateRoom = () => {
         // Navigate to create room page
-        console.log('Navigate to create room');
+
     };
 
     const handleJoinRoom = () => {
         // Navigate to join room page
-        console.log('Navigate to join room');
+
     };
 
     const handleGithubClick = () => {

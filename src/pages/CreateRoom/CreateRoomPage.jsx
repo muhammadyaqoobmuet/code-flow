@@ -35,7 +35,7 @@ const GridBackground = ({ isDark = false }) => {
 const SimpleButton = ({ children, variant = 'primary', className = '', onClick, disabled = false, type = 'button', ...props }) => {
     const baseClasses = "transition-all duration-200 font-semibold flex items-center justify-center gap-3";
     const variantClasses = variant === 'primary'
-        ? "bg-[#8D84B2] hover:bg-[#7D84B2] text-white shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        ? "bg-[#8D84B2] hover:bg-[#9D8BE6] text-white shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
         : variant === 'ghost'
             ? "hover:bg-gray-100 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             : "border-2 border-current hover:bg-gray-900 hover:text-white backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed";
@@ -53,7 +53,7 @@ const SimpleButton = ({ children, variant = 'primary', className = '', onClick, 
     );
 };
 
-const SimpleInput = ({ label, placeholder, icon: Icon , error, register, name, isDark, disabled = false, value, ...props }) => {
+const SimpleInput = ({ label, placeholder, icon: Icon, error, register, name, isDark, disabled = false, value, ...props }) => {
     return (
         <div className="space-y-2">
             <label className={`text-sm font-medium leading-none ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -223,7 +223,7 @@ export default function CreateRoom() {
                         <div className="relative z-10">
                             {/* Header */}
                             <div className="text-center mb-8">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7db4eaae] to-indigo-600 flex items-center justify-center text-white shadow-lg mx-auto mb-4">
+                                <div className="w-16 h-16 rounded-full bg-[#9D8BE6]  flex items-center justify-center text-white shadow-lg mx-auto mb-4">
                                     <Edit3 className="w-8 h-8" />
                                 </div>
 

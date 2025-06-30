@@ -1,5 +1,6 @@
 import { MessageCircle, MessageCircleDashed, MessageCircleHeart, Mic, Mic2, MicOff, Send, Play, Pause, Square, Phone, PhoneOff } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react'
+import { toast } from 'sonner';
 
 
 // Mock configuration - replace with your actual servers.js import
@@ -48,12 +49,12 @@ export default function ChatComponent({ socket, roomId, currentUsername }) {
             return;
         }
 
-        console.log('Setting up chat listeners for room:', roomId);
+        
         setIsConnected(true);
 
         // Listen for new messages (text and audio)
         const handleMessageReceive = (messageData) => {
-            console.log('Received message:', messageData);
+           
             setMessages(prevMessages => {
                 const exists = prevMessages.some(msg => msg.id === messageData.id);
                 if (exists) return prevMessages;
@@ -77,7 +78,7 @@ export default function ChatComponent({ socket, roomId, currentUsername }) {
 
         // Listen for message history
         const handleMessagesHistory = (messagesHistory) => {
-            console.log('Received messages history:', messagesHistory.length, 'messages');
+           
             const formattedMessages = messagesHistory.map(msg => ({
                 id: msg.id,
                 user: msg.username,
@@ -97,7 +98,7 @@ export default function ChatComponent({ socket, roomId, currentUsername }) {
 
         // Voice call listeners
         const handleVoiceCallOffer = async ({ from, offer, username }) => {
-            console.log('Received voice call offer from:', username);
+           
             // Auto-accept for simplicity - in production, show accept/decline UI
             await handleAcceptVoiceCall(from, offer, username);
         };
@@ -115,8 +116,8 @@ export default function ChatComponent({ socket, roomId, currentUsername }) {
         };
 
         const handleVoiceCallEnd = ({ username }) => {
-            console.log('Voice call ended by:', username);
-            // toast(`${username} ended the voice call`)
+         
+            toast(`${username} ended the voice call`)
 
             endVoiceCall();
         };
