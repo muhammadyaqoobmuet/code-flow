@@ -8,7 +8,7 @@ export const initSocket = async (action, data) => {
         forceNew: true, // Force a new connection
     }
 
-    const socket = io(import.meta.env.VITE_REACT_APP_BACKEND_URL, options);
+    const socket = io(import.meta.env.VITE_REACT_APP_BACKEND_URL || window.location.origin, options);
 
     // Wait for the socket to connect
     return new Promise((resolve, reject) => {
@@ -30,7 +30,7 @@ export const initSocket = async (action, data) => {
             reject(error);
         });
 
-        
-       
+
+
     });
 };

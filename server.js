@@ -2,6 +2,7 @@ import { ACTIONS } from './actions.js';
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import process from 'process';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 
@@ -21,6 +22,7 @@ const io = new Server(server, {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -263,6 +265,6 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => {
-    console.log('🚀 Server running on http://localhost:3000');
+server.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
