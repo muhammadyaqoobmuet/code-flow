@@ -3,12 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev:front": "vite",
     "dev": "npm run build && npm run server:prod",
     "build": "vite build",
     "server:dev": "nodemon server.js",
     "server:prod": "node server.js",
+    "postinstall": "npm run build",
     "start": "node server.js",
     "lint": "eslint .",
     "preview": "vite preview"
